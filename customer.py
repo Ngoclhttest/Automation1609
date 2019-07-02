@@ -8,7 +8,7 @@ class eWMS(unittest.TestCase):
     def setUp(self): # mo trinh duyet
         self.driver = webdriver.Chrome(executable_path=r'chromedriver.exe')
         driver = self.driver
-        driver.get('http://test.wms.icd.itlvn.com/customers')
+        driver.get('http://staging.wms.icd.itlvn.com/customers')
         driver.find_element_by_name('username').send_keys('admin')
         driver.find_element_by_name('password').send_keys('123456')
         warehouse_dropdown = Select(driver.find_element_by_name('warehouse_id'))
