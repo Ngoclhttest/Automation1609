@@ -1,11 +1,22 @@
 import unittest
 from selenium import webdriver
-from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.support import expected_conditions
+import os
+import mysql.connector
 import time
 
-class eWMS(unittest.TestCase):
 
-    def setUp(self): # mo trinh duyet
+class Customer(unittest.TestCase):
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    DB_HOST = '192.168.201.14'
+    DB_USER = 'wms_icd_staging'
+    DB_PASS = 'wms_icd'
+    DB_NAME = 'wms_icd_staging'
+
+    def setUp(self):
+        # mo trinh duyet
         self.driver = webdriver.Chrome(executable_path=r'chromedriver.exe')
         driver = self.driver
         driver.get('http://staging.wms.icd.itlvn.com/customers')
@@ -16,7 +27,8 @@ class eWMS(unittest.TestCase):
         driver.find_element_by_id('m_login_signin_submit').click()
         driver.implicitly_wait(10)
 
-    def tearDown(self): # dong trinh duyet
+    def tearDown(self):
+        # dong trinh duyet
         self.driver.close()
 
     def test_1(self): # kiểm tra sự kiện click link code customer
@@ -24,32 +36,60 @@ class eWMS(unittest.TestCase):
         driver.find_element_by_css_selector(
             "#customer-data tbody tr:nth-child(1) td:nth-child(1) > a").click()
 
-    def test_2(self): # kiểm tra sự kiện click button edit
+    def test_click_button_edit(self):
         driver = self.driver
-        driver.find_element_by_css_selector("#customer-data tbody tr:nth-child(2) td:nth-child(8) a[title='Edit details']").click()
+        driver.find_element_by_css_selector("#customer-data tbody tr:nth-child(2) td:nth-child(8)"
+                                            " a[title='Edit details']").click()
         time.sleep(3)
         assert "Edit Customer" in driver.page_source
 
-    def test_3(self):# kiểm tra sự kiện click button delete
+    def test_click_button_delete(self):
         driver = self.driver
-        driver.find_element_by_css_selector("#customer-data tbody tr:nth-child(2) td:nth-child(8) a[title='Delete']").click()
+        driver.find_element_by_css_selector("#customer-data tbody tr:nth-child(2) td:nth-child(8)"
+                                            " a[title='Delete']").click()
         time.sleep(2)
         warning_message = driver.find_element_by_css_selector("#pop-up-delete > div > div > div.modal-body").text
         assert "You are sure delete customer" in warning_message
 
-    def test_4(self): # kiểm tra sự kiện click reset
+    def test_click_button_reset(self):
         driver = self.driver
         driver.find_element_by_id('customer-search-reset').click()
 
-    def test_5(self): # click button create customer
+    def test_create_customer(self):
         driver = self.driver
         driver.find_element_by_css_selector("a.btn.btn-primary.m-btn.m-btn--icon.m-btn--wide").click()
         assert "Create Customer" in driver.page_source
 
-    def test_6(self):  # kiểm tra sự kiện click button import
+    def test_import_customer_sucess(self):  # kiểm tra sự kiện click button import
         driver = self.driver
-        driver.find_element_by_css_selector("a.btn:nth-child(2).btn-primary.m-btn.m-btn--icon.m-btn--wide").click() # bắt theo class
-        assert "Import Customer" in driver.page_source
+        driver.find_element_by_css_selector("a.btn:nth-child(2).btn-primary.m-btn.m-btn--icon.m-btn--wide").click()
+        driver.find_element_by_id('choose-file').send_keys(os.path.abspath("import_customer_sample.xlsx"))
+        driver.find_element_by_css_selector('#customer-import  div  div  div  div.col-sm-7.col-lg-9.import-form-block'
+                                            '  div.clearfix.cta-row  button').click()
+        WebDriverWait(self.driver, 10).until(expected_conditions.presence_of_all_elements_located(
+            (By.CSS_SELECTOR, '#customer-data-import > tbody tr[role="row"]')))
+        time.sleep(20)
+        customer_row_elements = self.driver.find_elements_by_css_selector('#customer-data-import '
+                                                                          ' tbody tr[role="row"]')
+        self.assertEqual(2, len(customer_row_elements), msg="2 dòng customer đã hiện chưa")
+        driver.find_element_by_id('btn-list-success').click()
+        time.sleep(3)
+        driver.find_element_by_css_selector("#import-success-modal  div  div  div.modal-footer  button").click()
+        WebDriverWait(self.driver, 10).until(expected_conditions.url_to_be
+                                             ('http://staging.wms.icd.itlvn.com/customers'))
+        # kết nối đến DB warehouuse
+        warehouse_db = mysql.connector.connect(
+            host=self.DB_HOST,
+            user=self.DB_USER,
+            passwd=self.DB_PASS,
+            database=self.DB_NAME
+        )
+        warehouse_cursor = warehouse_db.cursor()
+        warehouse_cursor.execute(
+            "SELECT COUNT(*) FROM customer WHERE (code='TEST01' OR code='Test02')")
+        number_of_imported_receipt = warehouse_cursor.fetchone()
+        self.assertEqual(2, number_of_imported_receipt[
+            0])
 
     def test_7(self): # kiểm tra sự kiện click button export
         driver = self.driver

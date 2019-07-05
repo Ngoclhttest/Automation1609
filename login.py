@@ -8,7 +8,7 @@ class eWMS(unittest.TestCase):
     def setUp(self): # mo trinh duyet
         self.driver = webdriver.Chrome(executable_path=r'chromedriver.exe')
         driver = self.driver
-        driver.get('http://test.wms.icd.itlvn.com')
+        driver.get('http://staging.wms.icd.itlvn.com')
         assert "Login - eWMS" in driver.title
 
     def tearDown(self): # dong trinh duyet
