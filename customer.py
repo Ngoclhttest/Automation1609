@@ -62,19 +62,27 @@ class Customer(unittest.TestCase):
 
     def test_import_customer_sucess(self):  # kiểm tra sự kiện click button import
         driver = self.driver
+        # Click buton import
         driver.find_element_by_css_selector("a.btn:nth-child(2).btn-primary.m-btn.m-btn--icon.m-btn--wide").click()
+        # Chọn file import vào hệ thống
         driver.find_element_by_id('choose-file').send_keys(os.path.abspath("import_customer_sample.xlsx"))
+        # Click vào button Upload
         driver.find_element_by_css_selector('#customer-import  div  div  div  div.col-sm-7.col-lg-9.import-form-block'
                                             '  div.clearfix.cta-row  button').click()
+        # Chờ cho tới khi xuất hiện 2 dòng dưới lưới import, chờ tối đa 10s
         WebDriverWait(self.driver, 10).until(expected_conditions.presence_of_all_elements_located(
             (By.CSS_SELECTOR, '#customer-data-import > tbody tr[role="row"]')))
-        time.sleep(20)
+        # Lấy những dòng được import
         customer_row_elements = self.driver.find_elements_by_css_selector('#customer-data-import '
                                                                           ' tbody tr[role="row"]')
+        # Kiểm tra xem số dòng có bằng 2 hay không
         self.assertEqual(2, len(customer_row_elements), msg="2 dòng customer đã hiện chưa")
         driver.find_element_by_id('btn-list-success').click()
+        # Chờ 3s để hiển thị lên popup message
         time.sleep(3)
+        # Click vào button Ok trong popup message
         driver.find_element_by_css_selector("#import-success-modal  div  div  div.modal-footer  button").click()
+        # Kiểm tra trang đã chuyển sang trang list hay chưa
         WebDriverWait(self.driver, 10).until(expected_conditions.url_to_be
                                              ('http://staging.wms.icd.itlvn.com/customers'))
         # kết nối đến DB warehouuse
@@ -84,16 +92,19 @@ class Customer(unittest.TestCase):
             passwd=self.DB_PASS,
             database=self.DB_NAME
         )
+        # Lấy con trỏ trên DB
         warehouse_cursor = warehouse_db.cursor()
+        # Query tìm 2 dòng được insert vào DB
         warehouse_cursor.execute(
             "SELECT COUNT(*) FROM customer WHERE (code='TEST01' OR code='Test02')")
+        # Lấy số dòng import thành công
         number_of_imported_receipt = warehouse_cursor.fetchone()
+        # Kiểm tra xem số dòng import vào DB có phải bằng 2 hay không
         self.assertEqual(2, number_of_imported_receipt[
             0])
 
-    def test_7(self): # kiểm tra sự kiện click button export
-        driver = self.driver
-        driver.find_element_by_css_selector("a.btn:nth-child(3).btn-primary.m-btn.m-btn--icon.m-btn--wide").click()
+    def test_import_customer_error(self):
+        pass
 
 
 if __name__ == "__main__":
