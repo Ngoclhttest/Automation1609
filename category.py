@@ -3,9 +3,10 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 import time
 
-class eWMS(unittest.TestCase):
 
-    def setUp(self): # mo trinh duyet
+class EWMS(unittest.TestCase):
+
+    def setUp(self):  # mo trinh duyet
         self.driver = webdriver.Chrome(executable_path=r'chromedriver.exe')
         driver = self.driver
         driver.get('http://staging.wms.icd.itlvn.com/categories')
@@ -16,7 +17,7 @@ class eWMS(unittest.TestCase):
         warehouse_dropdown.select_by_value('1')
         driver.find_element_by_id('m_login_signin_submit').click()
 
-    def test_link_category(self): # kiểm tra sự kiện click vào link name
+    def test_link_category(self):  # kiểm tra sự kiện click vào link name
         driver = self.driver
         driver.find_element_by_css_selector(
             "#category-data > tbody > tr:nth-child(2) > td.text-center.sorting_1 > a").click()
@@ -28,13 +29,13 @@ class eWMS(unittest.TestCase):
             "(.//*[normalize-space(text()) and normalize-space(.)='List Category'])[1]/following::i[1]").click()
         assert "Add Category" in driver.page_source
 
-    def test_click_edit(self): # Kiểm tra sự kiện khi click icon edit
+    def test_click_edit(self):  # Kiểm tra sự kiện khi click icon edit
         driver =self.driver
         driver.find_element_by_css_selector(
             "#category-data > tbody > tr:nth-child(1) > td:nth-child(4) > a:nth-child(1)").click()
         assert "Edit Category" in driver.page_source
 
-    def test_click_delete(self): # Kiểm tra sự kiện khi click icon delete
+    def test_click_delete(self):  # Kiểm tra sự kiện khi click icon delete
         driver = self.driver
         driver.implicitly_wait(50)
         driver.find_element_by_xpath(
@@ -43,7 +44,7 @@ class eWMS(unittest.TestCase):
         warning_message = driver.find_element_by_css_selector("#delete-confirm-modal > div > div > div.modal-body.text-center").text
         assert "Do you want to delete this category?" in warning_message
 
-    def tearDown(self): # dong trinh duyet
+    def tearDown(self):  # dong trinh duyet
         self.driver.close()
 
 
